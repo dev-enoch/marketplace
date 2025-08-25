@@ -1,0 +1,225 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------------
+// ENUMS
+// -------------------------
+enum UserRole {
+  ADMIN
+  SELLER
+  BUYER
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  TURBO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum NotificationType {
+  EMAIL
+  PUSH
+  SMS
+  IN_APP
+}
+
+// -------------------------
+// MODELS
+// -------------------------
+
+model User {
+  id                Int              @id @default(autoincrement())
+  uuid              String           @unique @default(uuid())
+
+  // Authentication
+  email             String           @unique
+  password          String
+  isEmailVerified   Boolean          @default(false)
+  emailVerificationToken String?
+  passwordResetToken String?
+  lastLogin         DateTime?
+  loginAttempts     Int              @default(0)
+  twoFactorEnabled  Boolean          @default(false)
+  twoFactorSecret   String?
+
+  // Profile
+  firstName         String?
+  lastName          String?
+  username          String?          @unique
+  avatarUrl         String?
+  bio               String?
+  website           String?
+  location          String?
+  phone             String?
+  dateOfBirth       DateTime?
+
+  // Roles & Permissions
+  role              UserRole         @default(BUYER)
+  permissions       String[]         // Fine-grained access control
+
+  // Subscription
+  subscriptions     Subscription[]
+
+  // Affiliate
+  affiliate         Affiliate?
+  affiliateReferrals Affiliate[] @relation("AffiliateReferrals")
+  referredById      Int?
+  referredBy        User?            @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals         User[]           @relation("UserReferrals")
+  commissionBalance Float            @default(0)
+  totalCommission   Float            @default(0)
+
+  // Preferences
+  preferredCurrency String           @default("USD")
+  locale            String           @default("en")
+  darkMode          Boolean          @default(false)
+  notificationsOptIn Boolean         @default(true)
+
+  // Activity Tracking
+  analytics         Analytics[]
+  notifications     Notification[]
+  lastActive        DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  // Relationships
+  products          Product[]        
+  orders            Order[]
+  cart              Cart?
+
+  // Settings
+  settings          Json?
+
+  @@index([email])
+  @@index([username])
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  quantity    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relationships
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  createdById Int
+  orders      OrderProduct[]
+  cartItems   CartItem[]
+}
+
+model Order {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  totalAmount Float
+  status      String    @default("PENDING")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  items       OrderProduct[]
+  payments    Payment[]
+}
+
+model OrderProduct {
+  id        Int     @id @default(autoincrement())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int
+  price     Float
+}
+
+model Cart {
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    Int       @unique
+  items     CartItem[]
+}
+
+
+model CartItem {
+  id        Int       @id @default(autoincrement())
+  cart      Cart      @relation(fields: [cartId], references: [id])
+  cartId    Int
+  product   Product   @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int       @default(1)
+}
+
+model Subscription {
+  id        Int               @id @default(autoincrement())
+  user      User              @relation(fields: [userId], references: [id])
+  userId    Int
+  plan      SubscriptionPlan
+  status    SubscriptionStatus
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+model Affiliate {
+  id              Int       @id @default(autoincrement())
+  user            User      @relation(fields: [userId], references: [id])
+  userId          Int       @unique
+  referredUsers   User[]    @relation("AffiliateReferrals")
+  totalCommission Float     @default(0)
+  balance         Float     @default(0)
+}
+
+model Analytics {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        Int             @id @default(autoincrement())
+  user      User            @relation(fields: [userId], references: [id])
+  userId    Int
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean         @default(false)
+  createdAt DateTime        @default(now())
+}
+
+model Payment {
+  id           Int      @id @default(autoincrement())
+  order        Order    @relation(fields: [orderId], references: [id])
+  orderId      Int
+  amount       Float
+  currency     String   @default("USD")
+  status       String   @default("PENDING")
+  provider     String
+  transactionId String? 
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
