@@ -8,3 +8,10 @@ export interface AuthenticatedRequest extends Request {
     refreshToken?: string;
   };
 }
+
+export interface AuthenticatedUser {
+  sub: number;
+  email: string;
+  role: 'BUYER' | 'SELLER' | 'ADMIN';
+  refreshToken?: string;
+}
