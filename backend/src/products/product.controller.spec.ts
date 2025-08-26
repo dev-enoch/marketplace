@@ -60,13 +60,12 @@ describe('ProductController', () => {
 
   it('should create a product', async () => {
     const mockReq = { user: { sub: 1, role: 'SELLER' } };
-    const result = await controller.create(
-      { name: 'Test Product', slug: 'test-product', price: 10 },
-      mockReq,
-    );
+    const dto = { name: 'Test Product', slug: 'test-product', price: 10 };
+    const result = await controller.create(dto, mockReq);
 
     expect(result.success).toBe(true);
     expect(result.data?.name).toBe('Test Product');
+    expect(service.create).toHaveBeenCalledWith(dto, 1);
   });
 
   it('should return all products', async () => {
@@ -99,6 +98,7 @@ describe('ProductController', () => {
   it('should update a product', async () => {
     const result = await controller.update('1', { price: 20 });
     expect(result.success).toBe(true);
+    expect(service.update).toHaveBeenCalledWith(1, { price: 20 });
   });
 
   it('should delete a product', async () => {

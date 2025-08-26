@@ -7,7 +7,9 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
+  ApiOkResponse,
 } from '@nestjs/swagger';
+import { ProfileDto } from './dto/profile.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -23,6 +25,10 @@ export class ProfileController {
     description: 'User profile returned successfully',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiOkResponse({
+    description: 'User profile returned successfully',
+    type: ProfileDto,
+  })
   async getProfile(@Req() req: { user: AuthenticatedUser }) {
     return this.profileService.getProfile(req.user);
   }

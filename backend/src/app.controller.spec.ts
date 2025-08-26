@@ -15,7 +15,7 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
+    it('should return "Marketplace Backend is running"', () => {
       expect(appController.getHello()).toBe('Marketplace Backend is running');
     });
   });

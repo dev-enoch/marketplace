@@ -19,8 +19,13 @@ describe('AuthService', () => {
   let jwt: JwtService;
 
   afterEach(() => {
-    jest.restoreAllMocks(); // important: clears spyOn calls
+    jest.restoreAllMocks();
     jest.clearAllMocks();
+  });
+
+  beforeAll(() => {
+    process.env.ACCESS_TOKEN_SECRET = 'access-secret';
+    process.env.REFRESH_TOKEN_SECRET = 'refresh-secret';
   });
 
   beforeEach(async () => {
@@ -40,15 +45,21 @@ describe('AuthService', () => {
         {
           provide: JwtService,
           useValue: {
-            signAsync: jest.fn().mockResolvedValue('signed-jwt'),
+            signAsync: jest.fn().mockImplementation((payload, options) => {
+              if (options.expiresIn === '15m')
+                return Promise.resolve('access-token');
+              if (options.expiresIn === '7d')
+                return Promise.resolve('refresh-token');
+              return Promise.resolve('unknown-token');
+            }),
           },
         },
         {
           provide: ConfigService,
           useValue: {
             get: jest.fn().mockImplementation((key: string) => {
-              if (key === 'ACCESS_TOKEN_SECRET') return 'access-secret';
-              if (key === 'REFRESH_TOKEN_SECRET') return 'refresh-secret';
+              if (key === 'JWT_ACCESS_SECRET') return 'access-secret';
+              if (key === 'JWT_REFRESH_SECRET') return 'refresh-secret';
               return null;
             }),
           },
@@ -123,15 +134,35 @@ describe('AuthService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.accessToken).toBeDefined();
+      expect(result.data?.refreshToken).toBeDefined();
+      expect(jwt.signAsync).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({ secret: 'access-secret' }),
+      );
+      expect(jwt.signAsync).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({ secret: 'refresh-secret' }),
+      );
+    });
+
+    it('should fail when password is incorrect', async () => {
+      const dto: LoginDto = { email: 'test@test.com', password: 'wrong' };
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        id: 1,
+        email: dto.email,
+        password: 'hashed',
+        role: 'BUYER',
+      } as User);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      const result = await service.login(dto);
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('Invalid credentials');
     });
 
     it('should fail with invalid credentials', async () => {
       const dto: LoginDto = { email: 'wrong@test.com', password: 'bad' };
-
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
-
       const result = await service.login(dto);
-
       expect(result.success).toBe(false);
       expect(result.message).toBe('Invalid credentials');
     });
@@ -139,42 +170,13 @@ describe('AuthService', () => {
 
   describe('refreshTokens', () => {
     it('should refresh tokens', async () => {
-      const mockUser: User & { refreshToken: string } = {
+      const mockUser = {
         id: 1,
         email: 'test@test.com',
         password: 'hashed',
         role: 'BUYER',
         refreshToken: 'old-hash',
-        uuid: '',
-        isEmailVerified: false,
-        emailVerificationToken: null,
-        passwordResetToken: null,
-        lastLogin: null,
-        loginAttempts: 0,
-        twoFactorEnabled: false,
-        twoFactorSecret: null,
-        firstName: null,
-        lastName: null,
-        username: null,
-        avatarUrl: null,
-        bio: null,
-        website: null,
-        location: null,
-        phone: null,
-        dateOfBirth: null,
-        permissions: [],
-        referredById: null,
-        commissionBalance: 0,
-        totalCommission: 0,
-        preferredCurrency: 'USD',
-        locale: 'en',
-        darkMode: false,
-        notificationsOptIn: true,
-        lastActive: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        settings: null,
-      };
+      } as Partial<User> as User & { refreshToken: string };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);

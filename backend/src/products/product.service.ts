@@ -101,6 +101,10 @@ export class ProductService {
       });
       return { success: true, data: product };
     } catch (error) {
+      console.error('Error updating product:', error);
+      if (error.code === 'P2025') {
+        return { success: false, message: 'Product not found' };
+      }
       return { success: false, message: 'Could not update product' };
     }
   }
@@ -110,6 +114,10 @@ export class ProductService {
       await this.prisma.product.delete({ where: { id } });
       return { success: true, data: { id } };
     } catch (error) {
+      console.error('Error deleting product:', error);
+      if (error.code === 'P2025') {
+        return { success: false, message: 'Product not found' };
+      }
       return { success: false, message: 'Could not delete product' };
     }
   }

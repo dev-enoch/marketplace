@@ -4,7 +4,6 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthenticatedRequest } from './types/auth-request.type';
-import { ConfigService } from '@nestjs/config';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -20,16 +19,6 @@ describe('AuthController', () => {
             register: jest.fn(),
             login: jest.fn(),
             refreshTokens: jest.fn(),
-          },
-        },
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn().mockImplementation((key: string) => {
-              if (key === 'ACCESS_TOKEN_SECRET') return 'access-secret';
-              if (key === 'REFRESH_TOKEN_SECRET') return 'refresh-secret';
-              return null;
-            }),
           },
         },
       ],

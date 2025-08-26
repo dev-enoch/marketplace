@@ -43,6 +43,17 @@ enum NotificationType {
   IN_APP
 }
 
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+enum ProductType {
+  DIGITAL
+  PHYSICAL
+}
+
 // -------------------------
 // MODELS
 // -------------------------
@@ -119,16 +130,16 @@ model Product {
   id          Int       @id @default(autoincrement())
   uuid        String    @unique @default(uuid())
   name        String
-  slug        String    @unique
+  slug        String    @db.Citext @unique
   description String?
   price       Float
   currency    String    @default("USD")
   quantity    Int       @default(0)
-  status      String    @default("ACTIVE") // ACTIVE, INACTIVE, DRAFT
-  productType String?   // e.g., DIGITAL, PHYSICAL
+  status      ProductStatus    @default(ACTIVE)
+  productType ProductType?
   category    String?   // Category or tag
-  tags        String[]  // Optional tags
-  images      String[]  // Array of image URLs
+  tags        String[]  
+  images      String[]  
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

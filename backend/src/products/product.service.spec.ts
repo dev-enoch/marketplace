@@ -3,6 +3,7 @@ import { ProductService } from './product.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Product } from '@prisma/client';
 import { SearchProductsDto } from './dto/search-products.dto';
+import { ProductStatus, ProductType } from './product-status.enum';
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -64,8 +65,8 @@ describe('ProductService', () => {
       description: 'A test product',
       quantity: 5,
       currency: 'USD',
-      status: 'ACTIVE',
-      productType: 'PHYSICAL',
+      status: 'ACTIVE' as ProductStatus,
+      productType: 'PHYSICAL' as ProductType,
       category: 'Test',
       tags: ['test'],
       images: ['img1.jpg'],
@@ -77,6 +78,11 @@ describe('ProductService', () => {
 
     expect(result.success).toBe(true);
     expect(result.data?.name).toBe('Test Product');
+    expect(prisma.product.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ createdById: userId }),
+      }),
+    );
   });
 
   it('should fetch all products', async () => {
@@ -92,20 +98,26 @@ describe('ProductService', () => {
       id: i + 1,
       name: `Product ${i + 1}`,
     }));
+    const mockTotal = 23;
 
     (prisma.product.findMany as jest.Mock).mockResolvedValue(mockProducts);
+    (prisma.product.count as jest.Mock).mockResolvedValue(mockTotal);
 
     const result = await service.search(dto);
 
     expect(result.success).toBe(true);
     expect(result.data.products).toHaveLength(5);
     expect(prisma.product.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        skip: 5, // (page - 1) * limit
-        take: 5,
-        where: expect.any(Object),
-      }),
+      expect.objectContaining({ skip: 5, take: 5 }),
     );
+    expect(prisma.product.count).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.any(Object) }),
+    );
+
+    expect(result.data.total).toBe(mockTotal);
+    expect(result.data.page).toBe(dto.page);
+    expect(result.data.limit).toBe(dto.limit);
+    expect(result.data.totalPages).toBe(Math.ceil(mockTotal / dto.limit));
   });
 
   it('should fetch one product', async () => {

@@ -1,6 +1,11 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiOkResponse,
+} from '@nestjs/swagger';
 
 @ApiTags('Backend')
 @Controller()
@@ -11,6 +16,9 @@ export class AppController {
   @ApiOperation({ summary: 'Check backend status' })
   @ApiResponse({
     status: 200,
+    description: 'Backend is running and responding',
+  })
+  @ApiOkResponse({
     description: 'Backend is running and responding',
   })
   getHello(): string {
