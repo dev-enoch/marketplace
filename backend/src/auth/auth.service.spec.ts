@@ -6,6 +6,7 @@ import * as bcrypt from 'bcryptjs';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { User } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
 
 jest.mock('bcryptjs', () => ({
   hash: jest.fn(),
@@ -40,6 +41,16 @@ describe('AuthService', () => {
           provide: JwtService,
           useValue: {
             signAsync: jest.fn().mockResolvedValue('signed-jwt'),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockImplementation((key: string) => {
+              if (key === 'ACCESS_TOKEN_SECRET') return 'access-secret';
+              if (key === 'REFRESH_TOKEN_SECRET') return 'refresh-secret';
+              return null;
+            }),
           },
         },
       ],

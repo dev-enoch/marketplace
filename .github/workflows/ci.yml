@@ -53,6 +53,10 @@ jobs:
     defaults:
       run:
         working-directory: frontend
+
+    env:
+      NODE_OPTIONS: "-r ts-node/register"
+
     steps:
       - uses: actions/checkout@v3
 

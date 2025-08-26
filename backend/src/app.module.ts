@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { RedisModule } from './redis/redis.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { RolesGuard } from './common/decorators/guards/roles.guard';
 
 @Module({
   imports: [
@@ -19,8 +20,10 @@ import { UsersModule } from './users/users.module';
     RedisModule,
     AuthModule,
     UsersModule,
+    RolesGuard,
   ],
   controllers: [AppController],
   providers: [AppService],
+  exports: [RolesGuard],
 })
 export class AppModule {}
