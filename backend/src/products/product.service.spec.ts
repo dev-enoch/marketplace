@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProductService } from './product.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Product } from '@prisma/client';
+import { SearchProductsDto } from './dto/search-products.dto';
 
 describe('ProductService', () => {
   let service: ProductService;
@@ -40,6 +41,7 @@ describe('ProductService', () => {
               findUnique: jest.fn().mockResolvedValue(mockProduct),
               update: jest.fn().mockResolvedValue(mockProduct),
               delete: jest.fn().mockResolvedValue(mockProduct),
+              count: jest.fn(),
             },
           },
         },
@@ -81,6 +83,29 @@ describe('ProductService', () => {
     const result = await service.findAll();
     expect(result.success).toBe(true);
     expect(result.data).toHaveLength(1);
+  });
+
+  it('should return paginated products', async () => {
+    const dto: SearchProductsDto = { page: 2, limit: 5, search: 'Test' };
+
+    const mockProducts = Array.from({ length: 5 }).map((_, i) => ({
+      id: i + 1,
+      name: `Product ${i + 1}`,
+    }));
+
+    (prisma.product.findMany as jest.Mock).mockResolvedValue(mockProducts);
+
+    const result = await service.search(dto);
+
+    expect(result.success).toBe(true);
+    expect(result.data.products).toHaveLength(5);
+    expect(prisma.product.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skip: 5, // (page - 1) * limit
+        take: 5,
+        where: expect.any(Object),
+      }),
+    );
   });
 
   it('should fetch one product', async () => {

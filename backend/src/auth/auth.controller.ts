@@ -1,15 +1,7 @@
-import {
-  Body,
-  Controller,
-  Injectable,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { AuthGuard } from '@nestjs/passport';
 import type { AuthenticatedRequest } from './types/auth-request.type';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 
@@ -32,9 +24,6 @@ export class AuthController {
   async refresh(@Req() req: AuthenticatedRequest) {
     const userId = req.user.sub;
     const refreshToken = req.user.refreshToken;
-
-    console.log('Refreshing tokens for userId:', userId);
-    console.log('Received refreshToken:', refreshToken);
 
     return this.authService.refreshTokens(userId, refreshToken!);
   }

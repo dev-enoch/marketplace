@@ -4,6 +4,7 @@ import { ProductService } from './product.service';
 import { ExecutionContext } from '@nestjs/common';
 import { RolesGuard } from 'src/common/decorators/guards/roles.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { SearchProductsDto } from './dto/search-products.dto';
 
 describe('ProductController', () => {
   let controller: ProductController;
@@ -25,6 +26,7 @@ describe('ProductController', () => {
     findOne: jest.fn().mockResolvedValue({ success: true, data: mockProduct }),
     update: jest.fn().mockResolvedValue({ success: true, data: mockProduct }),
     remove: jest.fn().mockResolvedValue({ success: true, data: mockProduct }),
+    search: jest.fn(),
   };
 
   const mockJwtGuard = {
@@ -71,6 +73,21 @@ describe('ProductController', () => {
     const result = await controller.findAll();
     expect(result.success).toBe(true);
     expect(result.data).toHaveLength(1);
+  });
+
+  it('should return paginated products', async () => {
+    const dto: SearchProductsDto = { page: 1, limit: 10, search: 'Test' };
+    const mockResponse = {
+      success: true,
+      data: { products: [{ id: 1, name: 'Product 1' }] },
+    };
+
+    (service.search as jest.Mock).mockResolvedValue(mockResponse);
+
+    const result = await controller.search(dto);
+
+    expect(result).toEqual(mockResponse);
+    expect(service.search).toHaveBeenCalledWith(dto);
   });
 
   it('should return one product', async () => {
