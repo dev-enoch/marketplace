@@ -43,6 +43,17 @@ enum NotificationType {
   IN_APP
 }
 
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+enum ProductType {
+  DIGITAL
+  PHYSICAL
+}
+
 // -------------------------
 // MODELS
 // -------------------------
@@ -117,10 +128,18 @@ model User {
 
 model Product {
   id          Int       @id @default(autoincrement())
+  uuid        String    @unique @default(uuid())
   name        String
+  slug        String    @db.Citext @unique
   description String?
   price       Float
+  currency    String    @default("USD")
   quantity    Int       @default(0)
+  status      ProductStatus    @default(ACTIVE)
+  productType ProductType?
+  category    String?   // Category or tag
+  tags        String[]  
+  images      String[]  
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -129,7 +148,12 @@ model Product {
   createdById Int
   orders      OrderProduct[]
   cartItems   CartItem[]
+  analytics   Analytics[]  // Tracks views, clicks, purchases
+
+  // Optional variants or options
+  variants    Json?     // Example: [{"size":"S","price":10}, {"size":"M","price":12}]
 }
+
 
 model Order {
   id          Int       @id @default(autoincrement())
@@ -198,6 +222,8 @@ model Analytics {
   userId    Int
   action    String
   metadata  Json?
+  product   Product   @relation(fields: [productId], references: [id])
+  productId Int
   createdAt DateTime @default(now())
 }
 
