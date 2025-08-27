@@ -8,7 +8,7 @@ import { SearchProductsDto } from './dto/search-products.dto';
 export class ProductService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreateProductDto, userId: number) {
+  async create(dto: CreateProductDto, userId: string) {
     try {
       const product = await this.prisma.product.create({
         data: { ...dto, createdById: userId },
@@ -83,7 +83,7 @@ export class ProductService {
     };
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     try {
       const product = await this.prisma.product.findUnique({ where: { id } });
       if (!product) return { success: false, message: 'Product not found' };
@@ -93,7 +93,7 @@ export class ProductService {
     }
   }
 
-  async update(id: number, dto: UpdateProductDto) {
+  async update(id: string, dto: UpdateProductDto) {
     try {
       const product = await this.prisma.product.update({
         where: { id },
@@ -109,7 +109,7 @@ export class ProductService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     try {
       await this.prisma.product.delete({ where: { id } });
       return { success: true, data: { id } };

@@ -58,7 +58,7 @@ export class AuthService {
     return { success: true, data: { user: safeUser, ...tokens } };
   }
 
-  async refreshTokens(userId: number, refreshToken: string) {
+  async refreshTokens(userId: string, refreshToken: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user || !user.refreshToken) {
       return { success: false, message: 'Access denied' };
@@ -73,7 +73,7 @@ export class AuthService {
     return { success: true, data: tokens };
   }
 
-  private async updateRefreshToken(userId: number, refreshToken: string) {
+  private async updateRefreshToken(userId: string, refreshToken: string) {
     const hashed = await bcrypt.hash(refreshToken, 10);
     await this.prisma.user.update({
       where: { id: userId },
@@ -81,7 +81,7 @@ export class AuthService {
     });
   }
 
-  private async getTokens(userId: number, email: string, role: string) {
+  private async getTokens(userId: string, email: string, role: string) {
     const payload = { sub: userId, email, role };
 
     const [accessToken, refreshToken] = await Promise.all([

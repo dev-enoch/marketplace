@@ -12,6 +12,9 @@ import { RolesGuard } from './common/decorators/guards/roles.guard';
 import { ProductModule } from './products/product.module';
 import { FilesModule } from './files/files.module';
 import { APP_GUARD } from '@nestjs/core';
+import { QueuesModule } from './queues/queues.module';
+import { MailModule } from './mail/mail.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -21,13 +24,15 @@ import { APP_GUARD } from '@nestjs/core';
     }),
     PrismaModule,
     RedisModule,
+    QueuesModule,
     AuthModule,
     UsersModule,
     ProductModule,
     FilesModule,
+    MailModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: RolesGuard }],
-  exports: [],
 })
 export class AppModule {}

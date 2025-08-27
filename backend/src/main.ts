@@ -4,11 +4,17 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { getQueueToken } from '@nestjs/bull';
+import { Queue } from 'bull';
+import { setupBullBoard } from './queues/bullboard';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+  const emailQueue = app.get<Queue>(getQueueToken('email'));
+  setupBullBoard(app.getHttpAdapter().getInstance(), [emailQueue]);
 
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()

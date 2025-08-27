@@ -1,4 +1,3 @@
-// mail.module.ts
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { MailService } from './mail.service';

@@ -8,9 +8,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   handleRequest<User extends AuthenticatedUser = AuthenticatedUser>(
     err: Error | null,
     user: User | false,
-    info: Error | null,
-    context: ExecutionContext,
-    status?: any,
   ): User {
     if (err) {
       throw err;

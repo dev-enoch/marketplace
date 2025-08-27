@@ -11,7 +11,6 @@ export class ProfileService {
       where: { id: user.sub },
       select: {
         id: true,
-        uuid: true,
         email: true,
         firstName: true,
         lastName: true,

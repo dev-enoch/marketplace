@@ -1,5 +1,5 @@
 import { Process, Processor, OnQueueFailed } from '@nestjs/bull';
-import { Job } from 'bull';
+import type { Job } from 'bull';
 import * as sgMail from '@sendgrid/mail';
 
 @Processor('mail')
