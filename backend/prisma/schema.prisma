@@ -179,6 +179,8 @@ model Cart {
   user      User      @relation(fields: [userId], references: [id])
   userId    String    @unique
   items     CartItem[]
+
+
 }
 
 model CartItem {
@@ -188,6 +190,8 @@ model CartItem {
   product   Product   @relation(fields: [productId], references: [id])
   productId String
   quantity  Int       @default(1)
+
+  @@unique([cartId, productId])
 }
 
 model Subscription {
