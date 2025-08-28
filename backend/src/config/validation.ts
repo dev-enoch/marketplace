@@ -14,4 +14,8 @@ export const validationSchema = Joi.object({
   AWS_ACCESS_KEY_ID: Joi.string().required(),
   AWS_SECRET_ACCESS_KEY: Joi.string().required(),
   AWS_S3_BUCKET: Joi.string().required(),
+
+  FLUTTERWAVE_SECRET_KEY: Joi.string().required(),
+  FLUTTERWAVE_PUBLIC_KEY: Joi.string().required(),
+  FLUTTERWAVE_ENCRYPTION_KEY: Joi.string().required(),
 });

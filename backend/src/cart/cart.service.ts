@@ -31,10 +31,9 @@ export interface CartResponse {
 
 @Injectable()
 export class CartService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
   private async ensureCart(userId: string) {
-    // userId is unique on Cart, so either find or create
     let cart = await this.prisma.cart.findUnique({
       where: { userId },
       select: { id: true, userId: true },

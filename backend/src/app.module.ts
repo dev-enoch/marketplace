@@ -17,6 +17,7 @@ import { RedisModule } from './redis/redis.module';
 import { RolesGuard } from './common/decorators/guards/roles.guard';
 import { UsersModule } from './users/users.module';
 import { ConfigCheckService } from './config/config-check.service';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ConfigCheckService } from './config/config-check.service';
     MailModule,
     PrismaModule,
     ProductModule,
+    PaymentsModule,
     QueuesModule,
     RedisModule,
     UsersModule,

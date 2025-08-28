@@ -19,6 +19,11 @@ export default () => ({
     secretAccessKey: String(process.env.AWS_SECRET_ACCESS_KEY),
     s3Bucket: String(process.env.AWS_S3_BUCKET),
   },
+  flutterwave: {
+    secretKey: process.env.FLUTTERWAVE_SECRET_KEY,
+    publicKey: process.env.FLUTTERWAVE_PUBLIC_KEY,
+    encryptionKey: process.env.FLUTTERWAVE_ENCRYPTION_KEY,
+  },
 });
 
 export type AppConfig = ReturnType<typeof import('./configuration').default>;

@@ -20,6 +20,9 @@ export class ConfigCheckService implements OnModuleInit {
       'AWS_ACCESS_KEY_ID',
       'AWS_SECRET_ACCESS_KEY',
       'AWS_S3_BUCKET',
+      'FLUTTERWAVE_SECRET_KEY',
+      'FLUTTERWAVE_PUBLIC_KEY',
+      'FLUTTERWAVE_ENCRYPTION_KEY',
     ];
 
     const missing = requiredKeys.filter((key) => {
