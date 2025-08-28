@@ -10,7 +10,7 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export interface AuthenticatedUser {
-  sub: number;
+  sub: string;
   email: string;
   role: 'BUYER' | 'SELLER' | 'ADMIN';
   refreshToken?: string;

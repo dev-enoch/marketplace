@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -59,8 +58,7 @@ enum ProductType {
 // -------------------------
 
 model User {
-  id                Int              @id @default(autoincrement())
-  uuid              String           @unique @default(uuid())
+  id                String           @id @default(uuid())
 
   // Authentication
   email             String           @unique
@@ -87,7 +85,7 @@ model User {
 
   // Roles & Permissions
   role              UserRole         @default(BUYER)
-  permissions       String[]         // Fine-grained access control
+  permissions       String[]
 
   // Subscription
   subscriptions     Subscription[]
@@ -95,7 +93,7 @@ model User {
   // Affiliate
   affiliate         Affiliate?
   affiliateReferrals Affiliate[] @relation("AffiliateReferrals")
-  referredById      Int?
+  referredById      String?
   referredBy        User?            @relation("UserReferrals", fields: [referredById], references: [id])
   referrals         User[]           @relation("UserReferrals")
   commissionBalance Float            @default(0)
@@ -127,17 +125,17 @@ model User {
 }
 
 model Product {
-  id          Int       @id @default(autoincrement())
-  uuid        String    @unique @default(uuid())
+  id          String    @id @default(uuid())
   name        String
-  slug        String    @db.Citext @unique
+  slug        String    @unique
+
   description String?
   price       Float
   currency    String    @default("USD")
   quantity    Int       @default(0)
   status      ProductStatus    @default(ACTIVE)
   productType ProductType?
-  category    String?   // Category or tag
+  category    String?
   tags        String[]  
   images      String[]  
   createdAt   DateTime  @default(now())
@@ -145,20 +143,18 @@ model Product {
 
   // Relationships
   createdBy   User      @relation(fields: [createdById], references: [id])
-  createdById Int
+  createdById String
   orders      OrderProduct[]
   cartItems   CartItem[]
-  analytics   Analytics[]  // Tracks views, clicks, purchases
+  analytics   Analytics[]
 
-  // Optional variants or options
-  variants    Json?     // Example: [{"size":"S","price":10}, {"size":"M","price":12}]
+  variants    Json?
 }
 
-
 model Order {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @default(uuid())
   user        User      @relation(fields: [userId], references: [id])
-  userId      Int
+  userId      String
   totalAmount Float
   status      String    @default("PENDING")
   createdAt   DateTime  @default(now())
@@ -169,36 +165,35 @@ model Order {
 }
 
 model OrderProduct {
-  id        Int     @id @default(autoincrement())
+  id        String  @id @default(uuid())
   order     Order   @relation(fields: [orderId], references: [id])
-  orderId   Int
+  orderId   String
   product   Product @relation(fields: [productId], references: [id])
-  productId Int
+  productId String
   quantity  Int
   price     Float
 }
 
 model Cart {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(uuid())
   user      User      @relation(fields: [userId], references: [id])
-  userId    Int       @unique
+  userId    String    @unique
   items     CartItem[]
 }
 
-
 model CartItem {
-  id        Int       @id @default(autoincrement())
+  id        String    @id @default(uuid())
   cart      Cart      @relation(fields: [cartId], references: [id])
-  cartId    Int
+  cartId    String
   product   Product   @relation(fields: [productId], references: [id])
-  productId Int
+  productId String
   quantity  Int       @default(1)
 }
 
 model Subscription {
-  id        Int               @id @default(autoincrement())
-  user      User              @relation(fields: [userId], references: [id])
-  userId    Int
+  id        String             @id @default(uuid())
+  user      User               @relation(fields: [userId], references: [id])
+  userId    String
   plan      SubscriptionPlan
   status    SubscriptionStatus
   startDate DateTime
@@ -208,40 +203,40 @@ model Subscription {
 }
 
 model Affiliate {
-  id              Int       @id @default(autoincrement())
+  id              String    @id @default(uuid())
   user            User      @relation(fields: [userId], references: [id])
-  userId          Int       @unique
+  userId          String    @unique
   referredUsers   User[]    @relation("AffiliateReferrals")
   totalCommission Float     @default(0)
   balance         Float     @default(0)
 }
 
 model Analytics {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   user      User     @relation(fields: [userId], references: [id])
-  userId    Int
+  userId    String
   action    String
   metadata  Json?
   product   Product   @relation(fields: [productId], references: [id])
-  productId Int
+  productId String
   createdAt DateTime @default(now())
 }
 
 model Notification {
-  id        Int             @id @default(autoincrement())
-  user      User            @relation(fields: [userId], references: [id])
-  userId    Int
+  id        String           @id @default(uuid())
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String
   type      NotificationType
   title     String
   message   String
-  isRead    Boolean         @default(false)
-  createdAt DateTime        @default(now())
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
 }
 
 model Payment {
-  id           Int      @id @default(autoincrement())
+  id           String   @id @default(uuid())
   order        Order    @relation(fields: [orderId], references: [id])
-  orderId      Int
+  orderId      String
   amount       Float
   currency     String   @default("USD")
   status       String   @default("PENDING")

@@ -10,8 +10,7 @@ describe('ProductService', () => {
   let prisma: PrismaService;
 
   const mockProduct: Product = {
-    id: 1,
-    uuid: 'uuid-1',
+    id: '1',
     name: 'Test Product',
     slug: 'test-product',
     description: 'Test',
@@ -25,7 +24,7 @@ describe('ProductService', () => {
     images: [],
     createdAt: new Date(),
     updatedAt: new Date(),
-    createdById: 1,
+    createdById: '1',
     variants: null,
   };
 
@@ -37,10 +36,15 @@ describe('ProductService', () => {
           provide: PrismaService,
           useValue: {
             product: {
-              create: jest.fn().mockResolvedValue(mockProduct),
+              create: jest.fn().mockImplementation(({ data }) => {
+                return Promise.resolve({ ...mockProduct, ...data });
+              }),
               findMany: jest.fn().mockResolvedValue([mockProduct]),
               findUnique: jest.fn().mockResolvedValue(mockProduct),
-              update: jest.fn().mockResolvedValue(mockProduct),
+              update: jest.fn().mockImplementation(({ where, data }) => {
+                // simulate prisma update: return object with updated fields
+                return Promise.resolve({ ...mockProduct, ...data });
+              }),
               delete: jest.fn().mockResolvedValue(mockProduct),
               count: jest.fn(),
             },
@@ -72,7 +76,7 @@ describe('ProductService', () => {
       images: ['img1.jpg'],
     };
 
-    const userId = 1;
+    const userId = '1';
 
     const result = await service.create(dto, userId);
 
@@ -95,7 +99,6 @@ describe('ProductService', () => {
     const dto: SearchProductsDto = { page: 2, limit: 5, search: 'Test' };
 
     const mockProducts = Array.from({ length: 5 }).map((_, i) => ({
-      id: i + 1,
       name: `Product ${i + 1}`,
     }));
     const mockTotal = 23;
@@ -121,20 +124,20 @@ describe('ProductService', () => {
   });
 
   it('should fetch one product', async () => {
-    const result = await service.findOne(1);
+    const result = await service.findOne('1');
     expect(result.success).toBe(true);
-    expect(result.data?.id).toBe(1);
+    expect(result.data?.id).toBe('1');
   });
 
   it('should update a product', async () => {
-    const result = await service.update(1, { price: 20 });
+    const result = await service.update('1', { price: 20 });
     expect(result.success).toBe(true);
-    expect(result.data?.price).toBe(10);
+    expect(result.data?.price).toBe(20);
   });
 
   it('should delete a product', async () => {
-    const result = await service.remove(1);
+    const result = await service.remove('1');
     expect(result.success).toBe(true);
-    expect(result.data?.id).toBe(1);
+    expect(result.data?.id).toBe('1');
   });
 });

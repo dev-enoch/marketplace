@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateProductDto } from './create-product.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { ProductStatus, ProductType } from '../product-status.enum';
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {
   @ApiPropertyOptional({ description: 'Name of the product' })
@@ -27,12 +28,12 @@ export class UpdateProductDto extends PartialType(CreateProductDto) {
   @ApiPropertyOptional({
     description: 'Status of the product: ACTIVE, INACTIVE, DRAFT',
   })
-  status?: string;
+  status?: ProductStatus;
 
   @ApiPropertyOptional({
     description: 'Type of the product: DIGITAL or PHYSICAL',
   })
-  productType?: string;
+  productType?: ProductType;
 
   @ApiPropertyOptional({ description: 'Category or tag of the product' })
   category?: string;
