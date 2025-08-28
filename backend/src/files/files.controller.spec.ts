@@ -1,53 +1,80 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FileUploadController } from './file-upload.controller';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from 'src/common/decorators/guards/roles.guard';
-import { join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
+import { ConfigService } from '@nestjs/config';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 describe('FileUploadController', () => {
-  let app: INestApplication;
-  const uploadPath = join(__dirname, '../../uploads');
+  let controller: FileUploadController;
 
-  beforeAll(async () => {
-    // Ensure the uploads folder exists
-    if (!existsSync(uploadPath)) mkdirSync(uploadPath);
-
+  beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [FileUploadController],
-    })
-      .overrideGuard(JwtAuthGuard)
-      .useValue({ canActivate: () => true })
-      .overrideGuard(RolesGuard)
-      .useValue({ canActivate: () => true })
-      .compile();
+      providers: [
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn().mockImplementation((key: string) => {
+              const values: Record<string, string> = {
+                'aws.region': 'us-east-1',
+                'aws.accessKeyId': 'fake-access',
+                'aws.secretAccessKey': 'fake-secret',
+                'aws.s3Bucket': 'test-bucket',
+              };
+              return values[key];
+            }),
+          },
+        },
+      ],
+    }).compile();
 
-    app = module.createNestApplication();
-    await app.init();
+    controller = module.get<FileUploadController>(FileUploadController);
   });
 
-  afterAll(async () => {
-    await app.close();
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
   });
 
-  it('should upload a file successfully', async () => {
-    const res = await request(app.getHttpServer())
-      .post('/files/upload')
-      .attach('file', Buffer.from('test file content'), 'test.txt');
-
-    expect(res.status).toBe(201);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data).toHaveProperty('filename');
-    expect(res.body.data).toHaveProperty('path');
+  it('should throw error when no file is provided', () => {
+    expect(() => controller.uploadFile(undefined as any)).toThrow(
+      new HttpException(
+        { success: false, message: 'No file provided' },
+        HttpStatus.BAD_REQUEST,
+      ),
+    );
   });
 
-  it('should reject upload if file not provided', async () => {
-    const res = await request(app.getHttpServer()).post('/files/upload');
+  it('should return success response when file is provided', () => {
+    const mockFile: Express.MulterS3.File = {
+      fieldname: 'file',
+      originalname: 'test.png',
+      encoding: '7bit',
+      mimetype: 'image/png',
+      size: 1234,
+      stream: {} as any,
+      destination: '',
+      filename: 'file-123.png',
+      path: '',
+      buffer: Buffer.from(''),
+      key: 'file-123.png',
+      location: 'https://test-bucket.s3.amazonaws.com/file-123.png',
+      bucket: 'test-bucket',
+      acl: 'public-read',
+      contentType: 'image/png',
+      etag: 'etag123',
+      metadata: {},
+      storageClass: 'STANDARD',
+      contentDisposition: null,
+      serverSideEncryption: null,
+    };
 
-    expect(res.status).toBe(400);
-    expect(res.body.success).toBe(false);
-    expect(res.body.message).toBe('No file provided');
+    const result = controller.uploadFile(mockFile);
+
+    expect(result).toEqual({
+      success: true,
+      data: {
+        filename: mockFile.key,
+        url: mockFile.location,
+      },
+    });
   });
 });

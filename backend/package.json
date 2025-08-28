@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.876.0",
     "@bull-board/express": "^6.12.6",
     "@nestjs-modules/ioredis": "^2.0.2",
     "@nestjs/bull": "^11.0.3",
@@ -40,6 +41,7 @@
     "ioredis": "^5.7.0",
     "joi": "^18.0.1",
     "multer": "^2.0.2",
+    "multer-s3": "^3.0.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
@@ -54,8 +56,10 @@
     "@nestjs/testing": "^11.0.1",
     "@types/bcryptjs": "^3.0.0",
     "@types/bull": "^4.10.4",
-    "@types/express": "^5.0.0",
+    "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
+    "@types/multer": "^2.0.0",
+    "@types/multer-s3": "^3.0.3",
     "@types/node": "^22.10.7",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
