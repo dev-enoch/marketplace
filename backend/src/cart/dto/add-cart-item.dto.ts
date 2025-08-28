@@ -4,10 +4,8 @@ import { Type } from 'class-transformer';
 
 export class AddCartItemDto {
   @ApiProperty({ description: 'Product ID to add', example: 42 })
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  productId!: number;
+  @Type(() => String)
+  productId!: string;
 
   @ApiPropertyOptional({
     description: 'Quantity to add (default 1)',

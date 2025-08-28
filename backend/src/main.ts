@@ -13,7 +13,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  const emailQueue = app.get<Queue>(getQueueToken('email'));
+  const emailQueue = app.get<Queue>(getQueueToken('mail'));
   setupBullBoard(app.getHttpAdapter().getInstance(), [emailQueue]);
 
   if (process.env.NODE_ENV !== 'production') {

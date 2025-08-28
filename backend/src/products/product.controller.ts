@@ -61,7 +61,7 @@ export class ProductController {
   @ApiResponse({ status: 200, description: 'Product found' })
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.productService.findOne(Number(id));
+    return this.productService.findOne(String(id));
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -72,7 +72,7 @@ export class ProductController {
   @ApiResponse({ status: 200, description: 'Product updated successfully' })
   @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
-    return this.productService.update(Number(id), dto);
+    return this.productService.update(String(id), dto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -83,6 +83,6 @@ export class ProductController {
   @ApiResponse({ status: 200, description: 'Product deleted successfully' })
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return this.productService.remove(Number(id));
+    return this.productService.remove(String(id));
   }
 }

@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-// Lightweight projections used in responses
 export interface CartProduct {
   id: string;
   name: string;
@@ -11,7 +10,7 @@ export interface CartProduct {
 }
 
 export interface CartLine {
-  id: string; // cartItem id
+  id: string;
   product: CartProduct;
   quantity: number;
   lineTotal: number;
@@ -32,10 +31,9 @@ export interface CartResponse {
 
 @Injectable()
 export class CartService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
   private async ensureCart(userId: string) {
-    // userId is unique on Cart, so either find or create
     let cart = await this.prisma.cart.findUnique({
       where: { userId },
       select: { id: true, userId: true },
@@ -57,7 +55,6 @@ export class CartService {
     productId: string,
     quantity = 1,
   ): Promise<CartResponse> {
-    // validate product
     const product = await this.prisma.product.findUnique({
       where: { id: productId },
       select: { id: true },
@@ -66,22 +63,11 @@ export class CartService {
 
     const cart = await this.ensureCart(userId);
 
-    // Upsert-like behavior for CartItem (no unique on productId,cartId in schema)
-    const existing = await this.prisma.cartItem.findFirst({
-      where: { cartId: cart.id, productId },
-      select: { id: true, quantity: true },
+    await this.prisma.cartItem.upsert({
+      where: { cartId_productId: { cartId: cart.id, productId } },
+      update: { quantity: { increment: quantity } },
+      create: { cartId: cart.id, productId, quantity },
     });
-
-    if (existing) {
-      await this.prisma.cartItem.update({
-        where: { id: existing.id },
-        data: { quantity: existing.quantity + quantity },
-      });
-    } else {
-      await this.prisma.cartItem.create({
-        data: { cartId: cart.id, productId, quantity },
-      });
-    }
 
     return this.getCart(userId);
   }

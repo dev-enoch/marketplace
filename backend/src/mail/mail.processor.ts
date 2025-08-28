@@ -1,11 +1,13 @@
 import { Process, Processor, OnQueueFailed } from '@nestjs/bull';
 import type { Job } from 'bull';
-import * as sgMail from '@sendgrid/mail';
+import sgMail from '@sendgrid/mail';
 
 @Processor('mail')
 export class MailProcessor {
   constructor() {
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
+    const apiKey = process.env.SENDGRID_API_KEY;
+    if (!apiKey) throw new Error('Missing SENDGRID_API_KEY');
+    sgMail.setApiKey(apiKey);
   }
 
   private async sendMail(
