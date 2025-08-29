@@ -17,7 +17,8 @@ import { RedisModule } from './redis/redis.module';
 import { RolesGuard } from './common/decorators/guards/roles.guard';
 import { UsersModule } from './users/users.module';
 import { ConfigCheckService } from './config/config-check.service';
-import { PaymentsModule } from './payments/payments.module';
+import { PaymentsModule } from './payments/payment.module';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { PaymentsModule } from './payments/payments.module';
     PaymentsModule,
     QueuesModule,
     RedisModule,
+    StripeModule,
     UsersModule,
   ],
   controllers: [AppController],

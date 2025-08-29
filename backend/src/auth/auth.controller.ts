@@ -1,9 +1,18 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import type { AuthenticatedRequest } from './types/auth-request.type';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import {
   ApiTags,
   ApiOperation,
@@ -47,7 +56,46 @@ export class AuthController {
   async refresh(@Req() req: AuthenticatedRequest) {
     const userId = req.user.sub;
     const refreshToken = req.user.refreshToken;
-
     return this.authService.refreshTokens(userId, refreshToken!);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: 200, description: 'Returns authenticated user.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  async me(@Req() req: AuthenticatedRequest) {
+    return this.authService.me(req.user.sub);
+  }
+
+  @Put('update-profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Update current user profile' })
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: 200, description: 'Profile updated successfully.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  async updateProfile(
+    @Req() req: AuthenticatedRequest,
+    @Body() body: { firstName?: string; lastName?: string },
+  ) {
+    return this.authService.updateProfile(req.user.sub, body);
+  }
+
+  @Put('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: 200, description: 'Password updated successfully.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  async changePassword(
+    @Req() req: AuthenticatedRequest,
+    @Body() body: { oldPassword: string; newPassword: string },
+  ) {
+    return this.authService.changePassword(
+      req.user.sub,
+      body.oldPassword,
+      body.newPassword,
+    );
   }
 }

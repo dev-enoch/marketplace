@@ -22,12 +22,6 @@ enum UserRole {
   BUYER
 }
 
-enum SubscriptionPlan {
-  FREE
-  PRO
-  TURBO
-}
-
 enum SubscriptionStatus {
   ACTIVE
   INACTIVE
@@ -92,10 +86,8 @@ model User {
 
   // Affiliate
   affiliate         Affiliate?
-  affiliateReferrals Affiliate[] @relation("AffiliateReferrals")
-  referredById      String?
-  referredBy        User?            @relation("UserReferrals", fields: [referredById], references: [id])
-  referrals         User[]           @relation("UserReferrals")
+  referralsReceived Referral[]       @relation("ReferralToUser")
+
   commissionBalance Float            @default(0)
   totalCommission   Float            @default(0)
 
@@ -179,8 +171,6 @@ model Cart {
   user      User      @relation(fields: [userId], references: [id])
   userId    String    @unique
   items     CartItem[]
-
-
 }
 
 model CartItem {
@@ -194,11 +184,22 @@ model CartItem {
   @@unique([cartId, productId])
 }
 
+model SubscriptionPlan {
+  id        String   @id @default(uuid())
+  name      String
+  amount    Int
+  currency  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  subscriptions Subscription[]
+}
+
 model Subscription {
   id        String             @id @default(uuid())
   user      User               @relation(fields: [userId], references: [id])
   userId    String
-  plan      SubscriptionPlan
+  plan      SubscriptionPlan   @relation(fields: [planId], references: [id])
+  planId    String
   status    SubscriptionStatus
   startDate DateTime
   endDate   DateTime
@@ -207,12 +208,24 @@ model Subscription {
 }
 
 model Affiliate {
-  id              String    @id @default(uuid())
-  user            User      @relation(fields: [userId], references: [id])
-  userId          String    @unique
-  referredUsers   User[]    @relation("AffiliateReferrals")
-  totalCommission Float     @default(0)
-  balance         Float     @default(0)
+  id          String       @id @default(uuid())
+  user        User         @relation(fields: [userId], references: [id])
+  userId      String       @unique
+  balance     Int          @default(0)
+  referrals   Referral[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Referral {
+  id             String     @id @default(uuid())
+  affiliate      Affiliate  @relation(fields: [affiliateId], references: [id])
+  affiliateId    String
+
+  referredUser   User       @relation("ReferralToUser", fields: [referredUserId], references: [id])
+  referredUserId String
+
+  createdAt      DateTime   @default(now())
 }
 
 model Analytics {
@@ -221,8 +234,8 @@ model Analytics {
   userId    String
   action    String
   metadata  Json?
-  product   Product   @relation(fields: [productId], references: [id])
-  productId String
+  product   Product?   @relation(fields: [productId], references: [id])
+  productId String?
   createdAt DateTime @default(now())
 }
 
@@ -238,14 +251,15 @@ model Notification {
 }
 
 model Payment {
-  id           String   @id @default(uuid())
-  order        Order    @relation(fields: [orderId], references: [id])
-  orderId      String
-  amount       Float
-  currency     String   @default("USD")
-  status       String   @default("PENDING")
-  provider     String
-  transactionId String? 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String   @id @default(uuid())
+  order         Order    @relation(fields: [orderId], references: [id])
+  orderId       String
+  amount        Float
+  currency      String   @default("USD")
+  status        String   @default("PENDING")
+  provider      String   
+  providerRef   String   
+  transactionId String?  @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

@@ -10,12 +10,14 @@ describe('ProductController', () => {
   let controller: ProductController;
   let service: ProductService;
 
+  const uuid = '550e8400-e29b-41d4-a716-446655440000';
+
   const mockProduct = {
-    id: 1,
+    id: uuid,
     name: 'Test Product',
     slug: 'test-product',
     price: 10,
-    createdById: 1,
+    createdById: uuid,
   };
 
   const mockService = {
@@ -32,7 +34,7 @@ describe('ProductController', () => {
   const mockJwtGuard = {
     canActivate: jest.fn((context: ExecutionContext) => {
       const req = context.switchToHttp().getRequest();
-      req.user = { sub: 1, role: 'SELLER' };
+      req.user = { sub: uuid, role: 'SELLER' };
       return true;
     }),
   };
@@ -59,13 +61,13 @@ describe('ProductController', () => {
   });
 
   it('should create a product', async () => {
-    const mockReq = { user: { sub: 1, role: 'SELLER' } };
+    const mockReq = { user: { sub: uuid, role: 'SELLER' } };
     const dto = { name: 'Test Product', slug: 'test-product', price: 10 };
     const result = await controller.create(dto, mockReq);
 
     expect(result.success).toBe(true);
     expect(result.data?.name).toBe('Test Product');
-    expect(service.create).toHaveBeenCalledWith(dto, 1);
+    expect(service.create).toHaveBeenCalledWith(dto, uuid);
   });
 
   it('should return all products', async () => {
@@ -78,7 +80,7 @@ describe('ProductController', () => {
     const dto: SearchProductsDto = { page: 1, limit: 10, search: 'Test' };
     const mockResponse = {
       success: true,
-      data: { products: [{ id: 1, name: 'Product 1' }] },
+      data: { products: [{ id: uuid, name: 'Product 1' }] },
     };
 
     (service.search as jest.Mock).mockResolvedValue(mockResponse);
@@ -90,19 +92,19 @@ describe('ProductController', () => {
   });
 
   it('should return one product', async () => {
-    const result = await controller.findOne('1');
+    const result = await controller.findOne(uuid);
     expect(result.success).toBe(true);
-    expect(result.data?.id).toBe(1);
+    expect(result.data?.id).toBe(uuid);
   });
 
   it('should update a product', async () => {
-    const result = await controller.update('1', { price: 20 });
+    const result = await controller.update(uuid, { price: 20 });
     expect(result.success).toBe(true);
-    expect(service.update).toHaveBeenCalledWith(1, { price: 20 });
+    expect(service.update).toHaveBeenCalledWith(uuid, { price: 20 });
   });
 
   it('should delete a product', async () => {
-    const result = await controller.remove('1');
+    const result = await controller.remove(uuid);
     expect(result.success).toBe(true);
   });
 });

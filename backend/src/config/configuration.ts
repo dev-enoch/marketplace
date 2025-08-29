@@ -24,6 +24,9 @@ export default () => ({
     publicKey: process.env.FLUTTERWAVE_PUBLIC_KEY,
     encryptionKey: process.env.FLUTTERWAVE_ENCRYPTION_KEY,
   },
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY,
+  },
 });
 
 export type AppConfig = ReturnType<typeof import('./configuration').default>;

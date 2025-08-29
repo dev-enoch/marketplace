@@ -47,9 +47,6 @@ export class CartService {
     return cart;
   }
 
-  /**
-   * Add (or increment) a product in the cart.
-   */
   async addItem(
     userId: string,
     productId: string,
@@ -69,12 +66,12 @@ export class CartService {
       create: { cartId: cart.id, productId, quantity },
     });
 
-    return this.getCart(userId);
+    return {
+      ...(await this.getCart(userId)),
+      message: 'Item added to cart',
+    };
   }
 
-  /**
-   * Update absolute quantity for a product line.
-   */
   async updateItem(
     userId: string,
     productId: string,
@@ -93,12 +90,12 @@ export class CartService {
       data: { quantity },
     });
 
-    return this.getCart(userId);
+    return {
+      ...(await this.getCart(userId)),
+      message: 'Item updated',
+    };
   }
 
-  /**
-   * Remove a single product from cart.
-   */
   async removeItem(userId: string, productId: string): Promise<CartResponse> {
     const cart = await this.ensureCart(userId);
 
@@ -110,21 +107,22 @@ export class CartService {
 
     await this.prisma.cartItem.delete({ where: { id: item.id } });
 
-    return this.getCart(userId);
+    return {
+      ...(await this.getCart(userId)),
+      message: 'Item removed',
+    };
   }
 
-  /**
-   * Clear all items for the current cart.
-   */
   async clearCart(userId: string): Promise<CartResponse> {
     const cart = await this.ensureCart(userId);
     await this.prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
-    return this.getCart(userId);
+
+    return {
+      ...(await this.getCart(userId)),
+      message: 'Cart cleared',
+    };
   }
 
-  /**
-   * Fetch full cart with item totals.
-   */
   async getCart(userId: string): Promise<CartResponse> {
     const cart = await this.ensureCart(userId);
 

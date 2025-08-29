@@ -7,11 +7,13 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { getQueueToken } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { setupBullBoard } from './queues/bullboard';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.use('/webhooks/stripe', express.raw({ type: 'application/json' }));
 
   const emailQueue = app.get<Queue>(getQueueToken('mail'));
   setupBullBoard(app.getHttpAdapter().getInstance(), [emailQueue]);

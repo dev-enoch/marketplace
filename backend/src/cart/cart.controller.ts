@@ -1,90 +1,69 @@
 import {
   Controller,
-  Post,
-  Patch,
-  Delete,
   Get,
+  Post,
+  Put,
+  Delete,
   Body,
   Param,
-  ParseIntPipe,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
+  ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiTags,
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
-import { CartService, CartResponse } from './cart.service';
-import { AddCartItemDto } from './dto/add-cart-item.dto';
-import { UpdateCartItemDto } from './dto/update-cart-item.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import type { AuthenticatedUser } from '../auth/types/auth-request.type';
+import { CartService } from './cart.service';
+
+class AddItemDto {
+  productId: string;
+  quantity?: number;
+}
+
+class UpdateItemDto {
+  quantity: number;
+}
 
 @ApiTags('Cart')
-@ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard)
 @Controller('cart')
 export class CartController {
-  constructor(private readonly cartService: CartService) {}
-
-  @Post('items')
-  @ApiOperation({ summary: 'Add a product to the cart (increment if exists)' })
-  @ApiBody({ type: AddCartItemDto })
-  @ApiResponse({ status: 200, description: 'Cart after add', type: Object })
-  async addItem(
-    @Req() req: { user: AuthenticatedUser },
-    @Body() dto: AddCartItemDto,
-  ): Promise<CartResponse> {
-    return this.cartService.addItem(
-      req.user.sub,
-      dto.productId,
-      dto.quantity ?? 1,
-    );
-  }
-
-  @Patch('items/:productId')
-  @ApiOperation({ summary: 'Update quantity of a cart item (absolute value)' })
-  @ApiParam({ name: 'productId', type: Number })
-  @ApiBody({ type: UpdateCartItemDto })
-  @ApiResponse({ status: 200, description: 'Cart after update', type: Object })
-  async updateItem(
-    @Req() req: { user: AuthenticatedUser },
-    @Param('productId', ParseIntPipe) productId: string,
-    @Body() dto: UpdateCartItemDto,
-  ): Promise<CartResponse> {
-    return this.cartService.updateItem(req.user.sub, productId, dto.quantity);
-  }
-
-  @Delete('items/:productId')
-  @ApiOperation({ summary: 'Remove a product from the cart' })
-  @ApiParam({ name: 'productId', type: Number })
-  @ApiResponse({ status: 200, description: 'Cart after removal', type: Object })
-  async removeItem(
-    @Req() req: { user: AuthenticatedUser },
-    @Param('productId', ParseIntPipe) productId: string,
-  ): Promise<CartResponse> {
-    return this.cartService.removeItem(req.user.sub, productId);
-  }
+  constructor(private cartService: CartService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get current user cart' })
-  @ApiResponse({ status: 200, description: 'Current cart', type: Object })
-  async getCart(
-    @Req() req: { user: AuthenticatedUser },
-  ): Promise<CartResponse> {
-    return this.cartService.getCart(req.user.sub);
+  @ApiOperation({ summary: 'Get the current user cart' })
+  @ApiResponse({ status: 200, description: 'Returns the user cart with items' })
+  getCart(@Req() req) {
+    return this.cartService.getCart(req.user.id);
   }
 
-  @Delete()
-  @ApiOperation({ summary: 'Clear current cart' })
-  @ApiResponse({ status: 200, description: 'Cart cleared', type: Object })
-  async clearCart(
-    @Req() req: { user: AuthenticatedUser },
-  ): Promise<CartResponse> {
-    return this.cartService.clearCart(req.user.sub);
+  @Post('add')
+  @ApiOperation({ summary: 'Add an item to the cart' })
+  @ApiBody({ type: AddItemDto })
+  @ApiResponse({ status: 201, description: 'Item added to cart' })
+  addItem(@Req() req, @Body() body: AddItemDto) {
+    return this.cartService.addItem(req.user.id, body.productId, body.quantity);
+  }
+
+  @Put('update/:productId')
+  @ApiOperation({ summary: 'Update quantity of a cart item' })
+  @ApiParam({ name: 'productId', type: String })
+  @ApiBody({ type: UpdateItemDto })
+  @ApiResponse({ status: 200, description: 'Item quantity updated' })
+  updateItem(
+    @Req() req,
+    @Param('productId') productId: string,
+    @Body() body: UpdateItemDto,
+  ) {
+    return this.cartService.updateItem(req.user.id, productId, body.quantity);
+  }
+
+  @Delete('remove/:productId')
+  @ApiOperation({ summary: 'Remove an item from the cart' })
+  @ApiParam({ name: 'productId', type: String })
+  @ApiResponse({ status: 200, description: 'Item removed from cart' })
+  removeItem(@Req() req, @Param('productId') productId: string) {
+    return this.cartService.removeItem(req.user.id, productId);
   }
 }

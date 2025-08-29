@@ -37,7 +37,7 @@ export class AuthService {
     const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
-    const { password, ...safeUser } = user;
+    const { password, refreshToken, ...safeUser } = user;
     return { success: true, data: { user: safeUser, ...tokens } };
   }
 
@@ -54,8 +54,52 @@ export class AuthService {
     const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
-    const { password, ...safeUser } = user;
+    const { password, refreshToken, ...safeUser } = user;
     return { success: true, data: { user: safeUser, ...tokens } };
+  }
+
+  async me(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) return { success: false, message: 'User not found' };
+
+    const { password, refreshToken, ...safeUser } = user;
+    return { success: true, data: safeUser };
+  }
+
+  async updateProfile(
+    userId: string,
+    data: { firstName?: string; lastName?: string },
+  ) {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+
+    const { password, refreshToken, ...safeUser } = user;
+    return { success: true, data: safeUser };
+  }
+
+  async changePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return { success: false, message: 'User not found' };
+
+    const valid = await bcrypt.compare(oldPassword, user.password);
+    if (!valid) return { success: false, message: 'Invalid current password' };
+
+    const hashedNew = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedNew },
+    });
+
+    return { success: true, message: 'Password updated successfully' };
   }
 
   async refreshTokens(userId: string, refreshToken: string) {
